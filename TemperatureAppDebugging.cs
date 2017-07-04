@@ -6,6 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Timers;
+using System.Net.Mail;
+using System.Net;
+
+
 
 
 
@@ -25,6 +30,22 @@ namespace TemperatureApp
             serialNo = Regex.Replace(s, "\"", "");
             reading = Regex.Replace(r, "\"", "");
             units = Regex.Replace(u, "\"", "");
+        }
+    }
+
+    public class TimerCheck
+    {
+        public static void RunTimer(float time, List<record>datalist)
+        {
+            System.Timers.Timer newTimer = new Timer();
+            newTimer.Elapsed += new ElapsedEventHandler(endOfCountdown);
+            newTimer.Interval = time;
+            newTimer.Enabled = true;
+
+        }
+        private static void endOfCountdown(object source, ElapsedEventArgs e)
+        {
+           
         }
     }
 
@@ -86,7 +107,7 @@ namespace TemperatureApp
         }
 
         
-        public static void consoleRequest()
+        public static void consoleRequest(List<record> datalist)
         {
             bool finished = false;
             string prompt = "";
@@ -100,7 +121,7 @@ namespace TemperatureApp
                         {
                             Console.Write(@"Commands you can use: 
                             changetemp : Allows you to input a new temperature at which a warning will be produced
-                            
+                            runtimer : Set up a timer for scheduling
                             ");
                             break;
                         }
@@ -127,6 +148,13 @@ namespace TemperatureApp
                                     satisfied = true;
                                 }
                             }
+                            break;
+                        }
+                    case "runtimer": 
+                        {
+                            Console.WriteLine("What value would you like the timer to have (in minutes)?");
+                            float time = float.Parse(Console.ReadLine()) * 60000;
+                            TimerCheck.RunTimer(time, datalist);
                             break;
                         }
                     default:
@@ -190,7 +218,8 @@ namespace TemperatureApp
                 Console.WriteLine("A temperature of over {0} degrees has been recorded. It was recorded at {1}", warningTemp, timeOfError);
             }
 
-            ConsoleWindow.consoleRequest();
+            
+            ConsoleWindow.consoleRequest(dataList);
 
             Console.ReadKey();
         }
