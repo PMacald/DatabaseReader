@@ -15,100 +15,7 @@ namespace TemperatureApp
 {
     public class ConsoleWindow
     {
-        public static string checkFile(string prompt)
-        {
-
-            bool fileFound = false;
-            string pathname = "";
-            while (!fileFound)
-            {
-                //ask for pathname
-                Console.WriteLine(prompt);
-                pathname = Console.ReadLine();
-                //check file exists at specified location
-                if (File.Exists(pathname) ? true : false)
-                {
-                    Console.WriteLine("File has been found");
-
-                    fileFound = true;
-                }
-                else
-                {
-                    prompt = "Sorry, that file has not been found. Please try again: ";
-                }
-
-            }
-
-            return pathname;
-        }
-
-        public static List<Record> displayData(string pathname)
-        {
-
-            List<string> lines = new List<string>();
-
-            List<Record> dataList = new List<Record>();
-            //int counter = 0;
-            foreach (var row in File.ReadAllLines(pathname))
-            {
-                //Debug.Write(row);
-                lines.Add(row);
-                
-                //rowArray contains data in each specified row, in Record format
-                string[] rowArray = row.Split(',');
-
-                Record rowObj = new Record(rowArray[0], rowArray[1], rowArray[2], rowArray[3]);
-
-                //Output contents of object to console
-                Console.WriteLine($"{rowObj.dateAndTime} \t {rowObj.serialNo} \t {rowObj.reading} \t {rowObj.units}");
-
-                dataList.Add(rowObj);
-
-
-            }
-
-            return dataList;
-        }
-
-        public static void readWarnings(string pathname, List<Record> dataList)
-        {
-            string warningTemp;
-            //Get temperature at which a warning will be produced
-            using (StreamReader sr = new StreamReader(pathname))
-            {
-                warningTemp = sr.ReadToEnd();
-                //Console.WriteLine(warningTemp);
-            }
-
-            float tempFloat = float.Parse(warningTemp);
-
-            string timeOfError = "";
-            //Console.Write(dataList);
-            bool warning = false;
-            foreach (var dataRow in dataList)
-            {
-                try
-                {
-                    //check if temperatures are greater than the warning level
-                    if (Convert.ToDouble(dataRow.reading) > tempFloat)
-                    {
-                        warning = true;
-                        timeOfError = dataRow.dateAndTime;
-                        break;
-                    }
-                }
-                catch (FormatException)
-                {
-                    continue;
-                }
-            }
-            if (warning)
-            {
-                Console.WriteLine($@"A temperature of over {Regex.Replace(warningTemp,"\n","")}°C has been Recorded. It was Recorded at {timeOfError}");
-            }
-        }
-
-        public static void consoleRequest(List<Record> datalist)
+        public static void consoleRequest(SpreadsheetFile sf, string pathname)
         {
             bool finished = false;
             string prompt = "";
@@ -122,10 +29,12 @@ namespace TemperatureApp
                         {
                             Console.Write(@"Commands you can use: 
                             changetemp : Allows you to input a new temperature at which a warning will be produced.
-                            runtimer : Set up a timer for scheduling.
+                            read: display the data stored in the spreadsheet.
+                            runtimer : Set up a timer for scheduling emails about the status of the thermometer.
                             display: Displays data collected so far.
-                            quit: Exit the program.
-                            ");
+                            email: recieve the data as an email.
+                            reload: Reload data stored in the spreadsheet.
+                            quit: Exit the program.");
                             break;
                         }
 
@@ -135,31 +44,39 @@ namespace TemperatureApp
                             bool satisfied = false;
                             while (!satisfied)
                             {
-                                Console.WriteLine(prompt);
+                                Console.Write(prompt);
                                 string temp = Console.ReadLine();
-                                float result = 0;
-                                if (Single.TryParse(temp, out result))
-                                {
-
-                                }
-                                else
-                                {
-
-                                    StreamWriter file = new StreamWriter(@"C:\Temperature_app\WarningTemp.txt");
-                                    file.WriteLine(temp);
-                                    Console.WriteLine(temp);
-                                    file.Close();
-                                    satisfied = true;
-                                    Console.WriteLine($"Teperature has been set to: {temp}°C");
-                                }
+                                //NEEDS ERROR CHECKING
+                                StreamWriter file = new StreamWriter(pathname);
+                                file.WriteLine(temp);
+                                Console.WriteLine(temp);
+                                file.Close();
+                                satisfied = true;
+                                Console.WriteLine($"Teperature has been set to: {temp}°C");
                             }
+                            break;
+                        }
+                    case "read":
+                        {
+                            SpreadsheetFile.displayData(sf);
                             break;
                         }
                     case "runtimer":
                         {
-                            Console.WriteLine("What value would you like the timer to have (in minutes)?");
-                            float time = float.Parse(Console.ReadLine()) * 60000;
-                            TimerCheck.RunTimer(time, datalist);
+                            
+                            TimerCheck.RunTimer(sf);
+                            break;
+                        }
+                    case "email":
+                        {
+                            Console.Write("Please enter the email address you'd like the data to be sent to: ");
+                            string receiver = Console.ReadLine();
+                            email.composeEmail(sf, receiver);
+                            break;
+                        }
+                    case "reload":
+                        {
+                            sf.datalist = sf.assembleData(sf);
                             break;
                         }
                     case "quit": {

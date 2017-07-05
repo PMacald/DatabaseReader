@@ -16,17 +16,13 @@ namespace TemperatureApp
     {
         static void Main(string[] args)
         {
-            //Console.WriteLine("Hi");
-            string pathname = ConsoleWindow.checkFile("Please enter the filepath of the data: ");
-            //string pathname = @"C:\Temperature_app\test.csv";
-            List<Record> dataList = new List<Record>();
-            dataList = ConsoleWindow.displayData(pathname);
-            string warningPathname;
-            warningPathname = ConsoleWindow.checkFile("Please enter the file containing the warning temperature: ");
-            ConsoleWindow.readWarnings(warningPathname, dataList);
-            ConsoleWindow.consoleRequest(dataList);
-            
-
+            SpreadsheetFile sf = new SpreadsheetFile();
+            sf.pathname = sf.checkFile("Please enter the filepath of the data: ");
+            sf.datalist = sf.assembleData(sf);
+            WarningFile wf = new WarningFile();
+            wf.pathname = wf.checkFile("Please enter the file containing the warning temperature: ");
+            wf.readWarnings(sf, wf);
+            ConsoleWindow.consoleRequest(sf, wf.pathname);
         }
     }
 }

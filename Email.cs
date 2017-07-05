@@ -11,19 +11,29 @@ namespace TemperatureApp
     public class email
     {
         
-        public static void composeEmail()
+        public static void composeEmail(SpreadsheetFile sf, string receiver)
         {
-
-
-            
-            MailMessage mail = new MailMessage("SMTP_Injection@sparkpostmail.com", "peter.i.macaldowie@gmail.com", "this is a test email.", "this is my test email body");
+            sf.datalist = sf.assembleData(sf);
+            string emailBody = "Thermometer Data:\n\n";
+            foreach (Record row in sf.datalist)
+            {
+                emailBody += $"{row.dateAndTime}\t{row.serialNo}\t{row.reading}\t{row.units}\n";
+            }
+            MailMessage mail = new MailMessage("Paul@otsys.co.uk", receiver, "Thermometer Data", emailBody);
             SmtpClient client = new SmtpClient("smtp.sparkpostmail.com", 587);
             client.EnableSsl = true;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
             client.UseDefaultCredentials = false;
             client.Credentials = new NetworkCredential("SMTP_Injection", "fae8840c80dd966210101be0dfdc9ea4e709014d");
-            client.Send(mail);
-        }
+            try {
+                client.Send(mail);
+                Console.WriteLine("Email Sent! Check your inbox!");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Email failed to send due to this error: {e}");
+            }
             
+        }
     }
 }
