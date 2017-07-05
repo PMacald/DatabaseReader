@@ -15,13 +15,13 @@ namespace TemperatureApp
         {
 
 
-
-            MailMessage mail = new MailMessage("iidozx@gmail.com", "peter.i.macaldowie@gmail.com", "this is a test email.", "this is my test email body");
-            SmtpClient client = new SmtpClient("smtp.google.com",465);
+            
+            MailMessage mail = new MailMessage("SMTP_Injection@sparkpostmail.com", "peter.i.macaldowie@gmail.com", "this is a test email.", "this is my test email body");
+            SmtpClient client = new SmtpClient("smtp.sparkpostmail.com", 587);
             client.EnableSsl = true;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
             client.UseDefaultCredentials = false;
-            client.Credentials = new NetworkCredential("iidozx@gmail.com", "Maximum12345");
+            client.Credentials = new NetworkCredential("SMTP_Injection", "fae8840c80dd966210101be0dfdc9ea4e709014d");
             client.Send(mail);
         }
             
